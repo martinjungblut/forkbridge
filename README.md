@@ -76,23 +76,21 @@ No global mutation, no macros, no surprise side effects.
 
 ## Comparison with babashka.process
 
-While [https://github.com/babashka/process](`babashka.process`) is a powerful and flexible library for managing subprocesses, `forkbridge` offers a different tradeoff, with a focus on minimalism, clarity, and lispy composition.
+While [`babashka.process`](https://github.com/babashka/process) is a powerful and flexible library for managing subprocesses, `forkbridge` offers a different tradeoff, with a focus on minimalism.
+
+In the future, we'll add some more features to `forkbridge` that will make it better at declarative interactivity with subprocesses.
 
 ### Strengths of forkbridge
 
-- **Functional Map Interface**: Each operation is a key in a returned map of closures. This avoids global state and allows composable, testable subprocess interaction.
-- **Unix-style Semantics**: Explicit naming like `:sigterm!`, `:sigkill!`, `:read-line-stdout`, etc. matches shell behavior clearly and transparently.
-- **Controlled and Explicit I/O**: Line-based readers and writers with newline-handling by default.
-- **Lightweight and Transparent**: No internal DSL or wrapper logic. Everything is direct and inspectable.
+- **Unix-style semantics**: Explicit naming like `:sigterm!`, `:sigkill!`, `:read-line-stdout`, etc. matches shell behavior clearly and transparently.
+- **Controlled and explicit I/O**: Line-based readers and writers with newline-handling by default.
 
-### When to use babashka.process instead
+### When to use `babashka.process` instead
 
 - **You need piping or redirection across multiple subprocesses** (e.g., `ls | grep foo`).
 - **You want tight integration with the Babashka runtime** or use it in scripting contexts.
 - **You need automatic stream handling** (e.g., `:inherit`, `:string`, or background execution).
 - **You prefer a higher-level API** with more built-in options for capturing and manipulating process output.
-
-`babashka.process` is excellent for general scripting and shell automation tasks. If you're building a higher-level system that models process orchestration, interaction, or stateful tools (e.g. Ansible runners), `forkbridge` offers a simpler and more flexible foundation with lispy ergonomics.
 
 ## Licence
 
