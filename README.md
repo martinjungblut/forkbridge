@@ -1,22 +1,99 @@
 # forkbridge
 
-A Clojure library designed to ... well, that part is up to you.
+`forkbridge` is a small, composable Clojure library for spawning and interacting with subprocesses.
 
-## Usage
+It provides a lispy, functional interface over `ProcessBuilder` that lets you:
+- Start and monitor long-lived processes
+- Read and write lines from standard input/output
+- Gracefully or forcefully terminate subprocesses
+- Wait for exit and capture exit codes
 
-FIXME
+The API is minimal, transparent, and structured as a functional map with closures — no global state or Java interop leaks.
 
-## License
+## Example
 
-Copyright © 2025 FIXME
+```clojure
+(require '[forkbridge.core :refer [start-process]])
 
-This program and the accompanying materials are made available under the
-terms of the Eclipse Public License 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0.
+(def p (start-process ["clojure"]))
 
-This Source Code may also be made available under the following Secondary
-Licenses when the conditions for such availability set forth in the Eclipse
-Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
-at https://www.gnu.org/software/classpath/license.html.
+((:write-line p) "(+ 1 2)")
+(println ((:read-line-stdout p))) ; => "user=> 3"
+
+((:write-line p) "(System/exit 0)")
+((:wait p))
+(println ((:exit-value p))) ; => 0
+```
+
+## API
+
+Each call to `start-process` returns a map with the following keys:
+
+| Key                | Description                                      |
+|---------------------|--------------------------------------------------|
+| `:alive?`           | Returns true if the process is still running     |
+| `:exit-value`       | Returns the exit code (or `nil` if still running)|
+| `:write-line`       | Writes a line to stdin, appending a newline      |
+| `:read-line-stdout` | Reads a full line from stdout                    |
+| `:read-line-stderr` | Reads a full line from stderr                    |
+| `:sigterm!`         | Sends SIGTERM to terminate the process gracefully|
+| `:sigkill!`         | Sends SIGKILL to forcefully terminate the process|
+| `:wait`             | Blocks until the process exits                   |
+
+Each of these is a function or thunk — to use them, call like so:
+
+```clojure
+((:write-line p) "(+ 2 2)")
+((:read-line-stdout p)) ; => "user=> 4"
+```
+
+## Use cases
+
+- Embedding REPLs and long-running interpreters
+- Orchestrating tools like Ansible or Bash scripts
+- Interactive automation with line-by-line output control
+- Safe process management in long-running systems
+
+## Testing
+
+The test suite includes:
+
+- Lifecycle validation (`:alive?`, `:exit-value`)
+- Interactive I/O with a Clojure REPL subprocess
+- Signal termination and proper exit code capture
+
+See `forkbridge.core-test` for working examples.
+
+## Philosophy
+
+This library favors:
+- Minimal state
+- Explicit, functional APIs
+- Unix-style semantics
+- Composability and testability
+
+No global mutation, no macros, no surprise side effects.
+
+## Comparison with babashka.process
+
+While [https://github.com/babashka/process](`babashka.process`) is a powerful and flexible library for managing subprocesses, `forkbridge` offers a different tradeoff, with a focus on minimalism, clarity, and lispy composition.
+
+### Strengths of forkbridge
+
+- **Functional Map Interface**: Each operation is a key in a returned map of closures. This avoids global state and allows composable, testable subprocess interaction.
+- **Unix-style Semantics**: Explicit naming like `:sigterm!`, `:sigkill!`, `:read-line-stdout`, etc. matches shell behavior clearly and transparently.
+- **Controlled and Explicit I/O**: Line-based readers and writers with newline-handling by default.
+- **Lightweight and Transparent**: No internal DSL or wrapper logic. Everything is direct and inspectable.
+
+### When to use babashka.process instead
+
+- **You need piping or redirection across multiple subprocesses** (e.g., `ls | grep foo`).
+- **You want tight integration with the Babashka runtime** or use it in scripting contexts.
+- **You need automatic stream handling** (e.g., `:inherit`, `:string`, or background execution).
+- **You prefer a higher-level API** with more built-in options for capturing and manipulating process output.
+
+`babashka.process` is excellent for general scripting and shell automation tasks. If you're building a higher-level system that models process orchestration, interaction, or stateful tools (e.g. Ansible runners), `forkbridge` offers a simpler and more flexible foundation with lispy ergonomics.
+
+## Licence
+
+MIT Licence. See [LICENCE](LICENCE) for details.

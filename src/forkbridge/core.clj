@@ -1,25 +1,29 @@
 (ns forkbridge.core
-  (:import [java.lang ProcessBuilder]
-           [java.io BufferedReader InputStreamReader OutputStreamWriter]))
+  (:import
+   [java.lang ProcessBuilder]
+   [java.io BufferedReader InputStreamReader OutputStreamWriter]))
 
 (defn start-process
   [cmd-vec]
   (let [pb (ProcessBuilder. cmd-vec)
         proc (.start pb)
-        stdin-writer  (-> proc .getOutputStream OutputStreamWriter.)
-        stdout-reader (-> proc .getInputStream InputStreamReader. BufferedReader.)
-        stderr-reader (-> proc .getErrorStream InputStreamReader. BufferedReader.)
+        writer-stdin  (-> proc .getOutputStream OutputStreamWriter.)
+        reader-stdout (-> proc .getInputStream InputStreamReader. BufferedReader.)
+        reader-stderr (-> proc .getErrorStream InputStreamReader. BufferedReader.)
         alive? #(.isAlive proc)
         exit-value #(try
                       (.exitValue proc)
                       (catch Exception _ nil))
-        write #(do (.write stdin-writer (str % "\n"))
-                   (.flush stdin-writer))
-        read #(.readLine stdout-reader)]
+        write-line #(do (.write writer-stdin (str % "\n"))
+                        (.flush writer-stdin))
+        read-line-stdout #(.readLine reader-stdout)
+        read-line-stderr #(.readLine reader-stderr)]
     {:alive? alive?
      :exit-value exit-value
-     :write write
-     :read read
-     :stdin   stdin-writer
-     :stdout  stdout-reader
-     :stderr  stderr-reader}))
+     :write-line write-line
+     :read-line-stdout read-line-stdout
+     :read-line-stderr read-line-stderr
+     ;; -----------------
+     :sigterm!     #(.destroy proc)
+     :sigkill!     #(.destroyForcibly proc)
+     :wait         #(.waitFor proc)}))
