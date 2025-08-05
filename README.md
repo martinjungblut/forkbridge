@@ -1,14 +1,14 @@
 # forkbridge
 
-`forkbridge` is a small, composable Clojure library for spawning and interacting with subprocesses.
+`forkbridge` is a small, well-tested Clojure library for spawning and interacting with subprocesses.
 
-It provides a lispy, functional interface over `ProcessBuilder` that lets you:
+It provides a simple interface over Java's `ProcessBuilder` that lets you:
 - Start and monitor long-lived processes
-- Read and write lines from standard input/output
+- Read and write lines from standard input/output in a safe, predictable way
 - Gracefully or forcefully terminate subprocesses
 - Wait for exit and capture exit codes
 
-The API is minimal, transparent, and structured as a functional map with closures — no global state or Java interop leaks.
+The API is minimal, transparent, and structured as a functional map with closures.
 
 ## Example
 
@@ -40,7 +40,7 @@ Each call to `start-process` returns a map with the following keys:
 | `:sigkill!`         | Sends SIGKILL to forcefully terminate the process|
 | `:wait`             | Blocks until the process exits                   |
 
-Each of these is a function or thunk — to use them, call like so:
+Each of these is a function or thunk — to use them, call them like so:
 
 ```clojure
 ((:write-line p) "(+ 2 2)")
@@ -61,34 +61,32 @@ The test suite includes:
 - Lifecycle validation (`:alive?`, `:exit-value`)
 - Interactive I/O with a Clojure REPL subprocess
 - Signal termination and proper exit code capture
+- Verification of blocking operations (reading from `stdout`/`stderr`)
 
 See `forkbridge.core-test` for working examples.
 
 ## Philosophy
 
-This library favors:
+This library favours:
 - Minimal state
-- Explicit, functional APIs
-- Unix-style semantics
+- UNIX-style semantics
 - Composability and testability
-
-No global mutation, no macros, no surprise side effects.
 
 ## Comparison with babashka.process
 
 While [`babashka.process`](https://github.com/babashka/process) is a powerful and flexible library for managing subprocesses, `forkbridge` offers a different tradeoff, with a focus on minimalism.
 
-In the future, we'll add some more features to `forkbridge` that will make it better at declarative interactivity with subprocesses.
+In the future, we may add some more features to `forkbridge`. We're still coming up with new ideas, but for now this is a usable base that just gets out of the way and provides some safety cushioning around interacting with subprocesses.
 
-### Strengths of forkbridge
+### Strengths of `forkbridge`
 
-- **Unix-style semantics**: Explicit naming like `:sigterm!`, `:sigkill!`, `:read-line-stdout`, etc. matches shell behavior clearly and transparently.
+- **UNIX-style semantics**: Explicit naming like `:sigterm!`, `:sigkill!`, `:read-line-stdout`, etc. matches shell behavior clearly and transparently.
 - **Controlled and explicit I/O**: Line-based readers and writers with newline-handling by default.
 
 ### When to use `babashka.process` instead
 
-- **You need piping or redirection across multiple subprocesses** (e.g., `ls | grep foo`).
 - **You want tight integration with the Babashka runtime** or use it in scripting contexts.
+- **You need piping or redirection across multiple subprocesses** (e.g., `ls | grep foo`).
 - **You need automatic stream handling** (e.g., `:inherit`, `:string`, or background execution).
 - **You prefer a higher-level API** with more built-in options for capturing and manipulating process output.
 
