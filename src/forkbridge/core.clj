@@ -14,8 +14,9 @@
         exit-value #(try
                       (.exitValue proc)
                       (catch Exception _ nil))
-        write-line #(do (.write writer-stdin (str % "\n"))
-                        (.flush writer-stdin))
+        write-line #(try (do (.write writer-stdin (str % "\n"))
+                             (.flush writer-stdin))
+                         (catch java.io.IOException _ nil))
         read-line-stdout #(.readLine reader-stdout)
         read-line-stderr #(.readLine reader-stderr)]
     {:alive? alive?

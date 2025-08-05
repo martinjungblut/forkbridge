@@ -91,3 +91,12 @@
       (is (= "needle-stderr" line)))
 
     ((:sigterm! p))))
+
+(deftest dead-process-write-line-returns-nil
+  (let [p (start-process ["clojure"])
+        sigterm! (:sigterm! p)
+        alive? (:alive? p)
+        write-line (:write-line p)]
+    (sigterm!)
+    (is (false? (alive?)))
+    (is (nil? (write-line "anything")))))
