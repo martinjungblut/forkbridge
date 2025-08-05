@@ -15,27 +15,6 @@
     (is (false? (alive?)))
     (is (= 10 (exit-value)))))
 
-(deftest read-and-write
-  (let [p (start-process ["clojure"])
-        exit-value (:exit-value p)
-        wait (:wait p)
-        read-line-stdout (:read-line-stdout p)
-        write-line (:write-line p)
-        header (read-line-stdout)]
-    (is (str/starts-with? header "Clojure"))
-
-    (write-line "(+ 10 20)")
-    (let [output (read-line-stdout)]
-      (is (= "user=> 30" output)))
-
-    (write-line "(* 200 3)")
-    (let [output (read-line-stdout)]
-      (is (= "user=> 600" output)))
-
-    (write-line "(System/exit 15)")
-    (wait)
-    (is (= 15 (exit-value)))))
-
 (deftest sigterm
   (let [p (start-process ["clojure"])
         alive? (:alive? p)
@@ -57,3 +36,58 @@
     (wait)
     (is (false? (alive?)))
     (is (= 9 (- (exit-value) 128)))))
+
+(deftest read-line-stdout-and-write-line
+  (let [p (start-process ["clojure"])
+        read-line-stdout (:read-line-stdout p)
+        write-line (:write-line p)
+        header (read-line-stdout)]
+    (is (str/starts-with? header "Clojure"))
+
+    (write-line "(+ 10 20)")
+    (let [output (read-line-stdout)]
+      (is (= "user=> 30" output)))
+
+    (write-line "(* 200 3)")
+    (let [output (read-line-stdout)]
+      (is (= "user=> 600" output)))
+
+    ((:sigterm! p))))
+
+(deftest read-line-stderr-and-write-line
+  (let [p (start-process ["clojure"])
+        read-line-stderr (:read-line-stderr p)
+        write-line (:write-line p)]
+
+    (write-line (str '(.println System/err "this goes to stderr")))
+    (let [output (read-line-stderr)]
+      (is (= "this goes to stderr" output)))
+
+    ((:sigterm! p))))
+
+(deftest read-line-stderr-blocks-until-output
+  (let [p (start-process ["bash"])
+        f1 (future ((:read-line-stdout p)))
+        f2 (future ((:read-line-stderr p)))]
+    ;; give it a chance to block
+    (Thread/sleep 300)
+
+    ;; should still be waiting
+    (is (not (realized? f1)))
+    (is (not (realized? f2)))
+
+    ;; write to stdout and stderr
+    ((:write-line p) "echo needle-stdout")
+    ((:write-line p) "echo needle-stderr 1>&2")
+
+    ;; make sure we found our "needle" in stdout
+    (let [line (deref f1 1000 ::timeout)]
+      (is (not= ::timeout line))
+      (is (= "needle-stdout" line)))
+
+    ;; make sure we found our "needle" in stderr
+    (let [line (deref f2 1000 ::timeout)]
+      (is (not= ::timeout line))
+      (is (= "needle-stderr" line)))
+
+    ((:sigterm! p))))

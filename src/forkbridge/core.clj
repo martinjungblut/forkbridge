@@ -23,7 +23,6 @@
      :write-line write-line
      :read-line-stdout read-line-stdout
      :read-line-stderr read-line-stderr
-     ;; -----------------
      :sigterm!     #(.destroy proc)
      :sigkill!     #(.destroyForcibly proc)
      :wait         #(.waitFor proc)}))
