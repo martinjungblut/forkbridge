@@ -10,6 +10,12 @@ It provides a simple interface over Java's `ProcessBuilder` that lets you:
 
 The API is minimal, transparent, and structured as a functional map with closures.
 
+## Installation
+
+Check the appropriate instructions on Clojars:
+
+https://clojars.org/org.clojars.martinjungblut/forkbridge
+
 ## Example
 
 ```clojure
