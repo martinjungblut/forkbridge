@@ -29,16 +29,18 @@ The API is minimal, transparent, and structured as a functional map with closure
 
 Each call to `start-process` returns a map with the following keys:
 
-| Key                | Description                                      |
-|---------------------|--------------------------------------------------|
-| `:alive?`           | Returns true if the process is still running     |
-| `:exit-value`       | Returns the exit code (or `nil` if still running)|
-| `:write-line`       | Writes a line to stdin, appending a newline      |
-| `:read-line-stdout` | Reads a full line from stdout                    |
-| `:read-line-stderr` | Reads a full line from stderr                    |
-| `:sigterm!`         | Sends SIGTERM to terminate the process gracefully|
-| `:sigkill!`         | Sends SIGKILL to forcefully terminate the process|
-| `:wait`             | Blocks until the process exits                   |
+
+| Key                  | Description                                                                 |
+|----------------------|-----------------------------------------------------------------------------|
+| `:alive?`            | Returns `true` if the process is still running                              |
+| `:exit-value`        | Returns the exit code (or `nil` if the process hasn't exited yet)           |
+| `:write-line!`       | Writes a line to the process's stdin (with a newline); returns `true` if successful, `nil` if the process is dead |
+| `:read-line-stdout!` | Blocks until a full line is available from stdout; returns the line, or `nil` if the process is dead |
+| `:read-line-stderr!` | Blocks until a full line is available from stderr; returns the line, or `nil` if the process is dead |
+| `:sigterm!`          | Sends SIGTERM to request graceful termination (non-blocking)                |
+| `:sigkill!`          | Sends SIGKILL to forcibly terminate the process (non-blocking)              |
+| `:wait!`             | Blocks until the process exits                                              |
+
 
 Each of these is a function or thunk — to use them, call them like so:
 

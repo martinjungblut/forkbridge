@@ -14,19 +14,19 @@
         exit-value #(try
                       (.exitValue proc)
                       (catch java.lang.IllegalThreadStateException _ nil))
-        write-line #(try (do (.write writer-stdin (str % "\n"))
-                             (.flush writer-stdin)
-                             true)
-                         (catch java.io.IOException _ nil))
-        read-line-stdout #(try (.readLine reader-stdout)
-                               (catch java.io.IOException _ nil))
-        read-line-stderr #(try (.readLine reader-stderr)
-                               (catch java.io.IOException _ nil))]
+        write-line! #(try (.write writer-stdin (str % "\n"))
+                          (.flush writer-stdin)
+                          true
+                          (catch java.io.IOException _ nil))
+        read-line-stdout! #(try (.readLine reader-stdout)
+                                (catch java.io.IOException _ nil))
+        read-line-stderr! #(try (.readLine reader-stderr)
+                                (catch java.io.IOException _ nil))]
     {:alive? alive?
      :exit-value exit-value
-     :write-line write-line
-     :read-line-stdout read-line-stdout
-     :read-line-stderr read-line-stderr
+     :write-line! write-line!
+     :read-line-stdout! read-line-stdout!
+     :read-line-stderr! read-line-stderr!
      :sigterm!     #(.destroy proc)
      :sigkill!     #(.destroyForcibly proc)
-     :wait         #(.waitFor proc)}))
+     :wait!         #(.waitFor proc)}))
