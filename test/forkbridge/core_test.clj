@@ -100,3 +100,14 @@
     (sigterm!)
     (is (false? (alive?)))
     (is (nil? (write-line "anything")))))
+
+(deftest dead-process-read-line-returns-nil
+  (let [p (start-process ["clojure"])
+        sigterm! (:sigterm! p)
+        alive? (:alive? p)
+        read-line-stdout (:read-line-stdout p)
+        read-line-stderr (:read-line-stderr p)]
+    (sigterm!)
+    (is (false? (alive?)))
+    (is (nil? (read-line-stdout)))
+    (is (nil? (read-line-stderr)))))

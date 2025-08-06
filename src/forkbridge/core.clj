@@ -5,20 +5,22 @@
 
 (defn start-process
   [cmd-vec]
-  (let [pb (ProcessBuilder. cmd-vec)
-        proc (.start pb)
+  (let [procbuilder (ProcessBuilder. cmd-vec)
+        proc (.start procbuilder)
         writer-stdin  (-> proc .getOutputStream OutputStreamWriter.)
         reader-stdout (-> proc .getInputStream InputStreamReader. BufferedReader.)
         reader-stderr (-> proc .getErrorStream InputStreamReader. BufferedReader.)
         alive? #(.isAlive proc)
         exit-value #(try
                       (.exitValue proc)
-                      (catch Exception _ nil))
+                      (catch java.lang.IllegalThreadStateException _ nil))
         write-line #(try (do (.write writer-stdin (str % "\n"))
                              (.flush writer-stdin))
                          (catch java.io.IOException _ nil))
-        read-line-stdout #(.readLine reader-stdout)
-        read-line-stderr #(.readLine reader-stderr)]
+        read-line-stdout #(try (.readLine reader-stdout)
+                               (catch java.io.IOException _ nil))
+        read-line-stderr #(try (.readLine reader-stderr)
+                               (catch java.io.IOException _ nil))]
     {:alive? alive?
      :exit-value exit-value
      :write-line write-line
