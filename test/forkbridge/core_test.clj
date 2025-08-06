@@ -92,16 +92,7 @@
 
     ((:sigterm! p))))
 
-(deftest dead-process-write-line-returns-nil
-  (let [p (start-process ["clojure"])
-        sigterm! (:sigterm! p)
-        alive? (:alive? p)
-        write-line (:write-line p)]
-    (sigterm!)
-    (is (false? (alive?)))
-    (is (nil? (write-line "anything")))))
-
-(deftest dead-process-read-line-returns-nil
+(deftest read-line-returns-nil-if-dead-process
   (let [p (start-process ["clojure"])
         sigterm! (:sigterm! p)
         alive? (:alive? p)
@@ -111,3 +102,19 @@
     (is (false? (alive?)))
     (is (nil? (read-line-stdout)))
     (is (nil? (read-line-stderr)))))
+
+(deftest write-line-returns-nil-if-dead-process
+  (let [p (start-process ["clojure"])
+        sigterm! (:sigterm! p)
+        alive? (:alive? p)
+        write-line (:write-line p)]
+    (sigterm!)
+    (is (false? (alive?)))
+    (is (nil? (write-line "anything")))))
+
+(deftest write-line-returns-true-if-alive-process
+  (let [p (start-process ["clojure"])
+        sigterm! (:sigterm! p)
+        write-line (:write-line p)]
+    (is (true? (write-line "(+ 10 20)")))
+    (sigterm!)))
