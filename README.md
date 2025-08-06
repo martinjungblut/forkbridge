@@ -17,11 +17,11 @@ The API is minimal, transparent, and structured as a functional map with closure
 
 (def p (start-process ["clojure"]))
 
-((:write-line p) "(+ 1 2)")
-(println ((:read-line-stdout p))) ; => "user=> 3"
+((:write-line! p) "(+ 1 2)")
+(println ((:read-line-stdout! p))) ; => "user=> 3"
 
-((:write-line p) "(System/exit 0)")
-((:wait p))
+((:write-line! p) "(System/exit 0)")
+((:wait! p))
 (println ((:exit-value p))) ; => 0
 ```
 
@@ -45,8 +45,8 @@ Each call to `start-process` returns a map with the following keys:
 Each of these is a function or thunk — to use them, call them like so:
 
 ```clojure
-((:write-line p) "(+ 2 2)")
-((:read-line-stdout p)) ; => "user=> 4"
+((:write-line! p) "(+ 2 2)")
+((:read-line-stdout! p)) ; => "user=> 4"
 ```
 
 ## Use cases
@@ -82,7 +82,7 @@ In the future, we may add some more features to `forkbridge`. We're still coming
 
 ### Strengths of `forkbridge`
 
-- **UNIX-style semantics**: Explicit naming like `:sigterm!`, `:sigkill!`, `:read-line-stdout`, etc. matches shell behavior clearly and transparently.
+- **UNIX-style semantics**: Explicit naming like `:sigterm!`, `:sigkill!`, `:read-line-stdout!`, etc. matches shell behavior clearly and transparently.
 - **Controlled and explicit I/O**: Line-based readers and writers with newline-handling by default.
 
 ### When to use `babashka.process` instead
